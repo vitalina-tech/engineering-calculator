@@ -1,11 +1,12 @@
 import tkinter as tk
+from tkinter import ttk
 from conversions import convert
 from config import UNITS, COLORS, WINDOW_SIZE
 
 def create_gui():
     window = tk.Tk()
     window.title("Unit Converter")
-    window.geometry("500x400")
+    window.geometry(WINDOW_SIZE)
     window.config(bg=COLORS['background'])
 
     def convert_units():
@@ -31,26 +32,26 @@ def create_gui():
     value_entry = tk.Entry(window, width=20, font=('Arial', 12))
     value_entry.pack(pady=5)
 
-    tk.Label(window, text="From:", bg=COLORS['background'], fg='white').pack(pady=(10,0))
-    from_var = tk.StringVar(value='m')
-    from_frame = tk.Frame(window, bg=COLORS['background'])
-    from_frame.pack(pady=5)
-
     units = UNITS
 
-    for unit in units:
-        tk.Radiobutton(from_frame, text=unit, variable=from_var, value=unit, 
-                    bg=COLORS['background'], fg='white', selectcolor=COLORS['background']).pack(side='left', padx=5)
+    conversion_frame = tk.Frame(window, bg=COLORS['background'])
+    conversion_frame.pack(pady=10)
 
-    tk.Label(window, text="To:", bg=COLORS['background'], fg='white').pack(pady=(10,0))
+    from_frame = tk.Frame(conversion_frame, bg=COLORS['background'])
+    from_frame.pack(side='left', padx=20)
+
+    tk.Label(from_frame, text="From:", bg=COLORS['background'], fg=COLORS['text']).pack()
+    from_var = tk.StringVar(value='m')
+    from_combo = ttk.Combobox(from_frame, textvariable=from_var, values=UNITS, state="readonly")
+    from_combo.pack(pady=5)
+
+    to_frame = tk.Frame(conversion_frame, bg=COLORS['background'])
+    to_frame.pack(side='left', padx=20)
+
+    tk.Label(to_frame, text="To:", bg=COLORS['background'], fg=COLORS['text']).pack()
     to_var = tk.StringVar(value='m')
-    to_frame = tk.Frame(window, bg=COLORS['background'])
-    to_frame.pack(pady=5)
-
-    for unit in units:
-        tk.Radiobutton(to_frame, text=unit, variable=to_var, value=unit, 
-                    bg=COLORS['background'], fg='white', selectcolor=COLORS['background']).pack(side='left', padx=5)
-
+    to_combo = ttk.Combobox(to_frame, textvariable=to_var, values=UNITS, state="readonly")
+    to_combo.pack(pady=5)
 
     value_entry.bind('<Return>', lambda event: convert_units())
 
@@ -58,6 +59,7 @@ def create_gui():
                             text="Convert", 
                             font=('Arial', 12, 'normal'),
                             bg=COLORS['button'],
+                            fg=COLORS['button_text'],
                             command=convert_units)
     convert_button.pack(pady=20)
 
