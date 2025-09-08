@@ -1,3 +1,6 @@
+import math
+
+
 CONVERSIONS = {
     'Length': {
         'units': ['m', 'ft', 'in', 'yd', 'mi'],
@@ -6,6 +9,13 @@ CONVERSIONS = {
     'Weight': {
         'units': ['kg', 'lb', 'oz', 'g'],
         'factors': {'kg': 1, 'lb': 0.453592, 'oz': 0.0283495, 'g': 0.001}
+    },
+    'Angle': {
+        'units': ['deg', 'rad', 'grad'],
+        'factors': {'deg': 1, 'rad': math.pi/180, 'grad': 0.9}
+    },
+    'Temperature': {
+        'units': ['C', 'F', 'K']
     }
 }
 
