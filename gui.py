@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from conversions import convert
 from config import CONVERSIONS, COLORS, WINDOW_SIZE
+import datetime
+from log import LOG
 
 def create_conversion_tab(notebook, conversion_type, data):
     tab_frame = tk.Frame(notebook, bg=COLORS['background'])
@@ -27,6 +29,7 @@ def create_conversion_tab(notebook, conversion_type, data):
     from_var = tk.StringVar(value=data['units'][0])
     from_combo = ttk.Combobox(from_frame, textvariable=from_var, values=data['units'], state="readonly")
     from_combo.pack(pady=5)
+    from_combo.bind('<<ComboboxSelected>>', lambda event: convert_units())
 
     to_frame = tk.Frame(conversion_frame, bg=COLORS['background'])
     to_frame.pack(side='left', padx=20)
@@ -35,6 +38,10 @@ def create_conversion_tab(notebook, conversion_type, data):
     to_var = tk.StringVar(value=data['units'][0])
     to_combo = ttk.Combobox(to_frame, textvariable=to_var, values=data['units'], state="readonly")
     to_combo.pack(pady=5)
+    to_combo.bind('<<ComboboxSelected>>', lambda event: convert_units())
+
+
+
     def convert_units():
         try:
             value = float(value_entry.get())
@@ -43,24 +50,51 @@ def create_conversion_tab(notebook, conversion_type, data):
             result = convert(value, from_unit, to_unit, conversion_type)
             if result is not None:
                 result_label.config(text=f'{value:.4f} {from_unit} = {result:.4f} {to_unit}')
+
             else:
                 result_label.config(text="Error in conversion")
         except ValueError:
             result_label.config(text="Please enter a valid number")
+    
+    def save_data():
+        try:
+            value = float(value_entry.get())
+            from_unit = from_var.get()
+            to_unit = to_var.get()
+            result = convert(value, from_unit, to_unit, conversion_type)
+            
+            if result is not None:
+                record = {
+                    'timestamp': datetime.datetime.now(),
+                    'category': conversion_type,
+                    'value': value,
+                    'from_unit': from_unit,
+                    'to_unit': to_unit,
+                    'result': result
+                }
+                LOG.append(record)
+                print(f"Saved: {len(LOG)} records")
+            else:
+                print("Cannot save - conversion error")
+        except ValueError:
+            print("Cannot save - invalid input")
 
-    convert_button = tk.Button(tab_frame, 
-                              text="Convert", 
-                              font=('Arial', 12, 'normal'),
-                              bg=COLORS['button'],
-                              fg=COLORS['button_text'],
-                              command=convert_units)
-    convert_button.pack(pady=20)
+    value_entry.bind('<KeyRelease>', lambda event: convert_units())
 
     result_label = tk.Label(tab_frame, 
-                           text="Enter value and click Convert",
+                           text="Enter value",
                            font=('Arial', 12),
                            bg=COLORS['background'], fg=COLORS['text'])
     result_label.pack(pady=10)
+
+    save_button = tk.Button(tab_frame, 
+                            text="Save", 
+                            font=('Arial', 12, 'normal'),
+                            bg=COLORS['button'],
+                            fg=COLORS['button_text'],
+                            command=lambda: save_data())
+    save_button.pack(pady=20)
+
 
 def create_gui():
     window = tk.Tk()
@@ -73,5 +107,25 @@ def create_gui():
 
     for conversion_type, data in CONVERSIONS.items():
         create_conversion_tab(notebook, conversion_type, data)
+
+    history_frame = tk.Frame(notebook, bg=COLORS['background'])
+    notebook.add(history_frame, text='History')
+
+    history_listbox=tk.Listbox(history_frame)
+    history_listbox.pack(expand=True, fill='both', padx=10, pady=10)
+
+    def update_history():
+        history_listbox.delete(0, tk.END)
+        for record in LOG:
+            time_str = record['timestamp'].strftime("%H:%M")
+            text = f"{time_str} - {record['category']}: {record['value']:.2f} {record['from_unit']} = {record['result']:.2f} {record['to_unit']}"
+            history_listbox.insert(tk.END, text)
+
+    def on_tab_changed(event):
+        selected_tab = event.widget.tab('current')['text']
+        if selected_tab == 'History':
+            update_history()
+
+    notebook.bind('<<NotebookTabChanged>>', on_tab_changed)
 
     window.mainloop()
