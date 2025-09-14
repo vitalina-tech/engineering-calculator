@@ -4,6 +4,7 @@ from conversions import convert
 from config import CONVERSIONS, COLORS, WINDOW_SIZE
 import datetime
 from log import LOG
+from navigation import haversine_distance
 
 def create_conversion_tab(notebook, conversion_type, data):
     tab_frame = tk.Frame(notebook, bg=COLORS['background'])
@@ -95,6 +96,72 @@ def create_conversion_tab(notebook, conversion_type, data):
                             command=lambda: save_data())
     save_button.pack(pady=20)
 
+def distance_tab(notebook):
+    distance_frame = tk.Frame(notebook, bg=COLORS['background'])
+    notebook.add(distance_frame, text='Distance')
+
+    title_label = tk.Label(distance_frame, 
+                          text="Distance calculation", 
+                          font=('Arial', 16, 'bold'),
+                          bg=COLORS['background'], fg=COLORS['text'])
+    title_label.pack(pady=20)
+
+    coordinates_frame = tk.Frame(distance_frame, bg=COLORS['background'])
+    coordinates_frame.pack(pady=10)
+
+    first_point_frame = tk.Frame(coordinates_frame, bg=COLORS['background'])
+    first_point_frame.pack(side='left', padx=20)
+
+    tk.Label(first_point_frame, text="First Point", bg=COLORS['background'], fg=COLORS['text'], font=('Arial', 12, 'bold')).pack()
+
+    tk.Label(first_point_frame, text="Enter latitudes:", bg=COLORS['background'], fg=COLORS['text']).pack()
+    lat1_entry = tk.Entry(first_point_frame, width=20, font=('Arial', 12))
+    lat1_entry.pack(pady=5)
+
+    tk.Label(first_point_frame, text="Enter  longitudes:", bg=COLORS['background'], fg=COLORS['text']).pack()
+    lon1_entry = tk.Entry(first_point_frame, width=20, font=('Arial', 12))
+    lon1_entry.pack(pady=5)
+
+    second_point_frame = tk.Frame(coordinates_frame, bg=COLORS['background'])
+    second_point_frame.pack(side='left', padx=20)
+
+    tk.Label(second_point_frame, text="Second Point", bg=COLORS['background'], fg=COLORS['text'], font=('Arial', 12, 'bold')).pack()
+
+    tk.Label(second_point_frame, text="Enter latitudes:", bg=COLORS['background'], fg=COLORS['text']).pack()
+    lat2_entry = tk.Entry(second_point_frame, width=20, font=('Arial', 12))
+    lat2_entry.pack(pady=5)
+
+    tk.Label(second_point_frame, text="Enter  longitudes:", bg=COLORS['background'], fg=COLORS['text']).pack()
+    lon2_entry = tk.Entry(second_point_frame, width=20, font=('Arial', 12))
+    lon2_entry.pack(pady=5)
+
+    distance_label = tk.Label(distance_frame, 
+                           text="Enter values",
+                           font=('Arial', 12),
+                           bg=COLORS['background'], fg=COLORS['text'])
+    distance_label.pack(pady=10)
+
+    def calculate_distance():
+        try:
+            lat1 = float(lat1_entry.get())
+            lat2 = float(lat2_entry.get())
+            lon1 = float(lon1_entry.get())
+            lon2 = float(lon2_entry.get())
+            if -90<=lat1<=90 and -90<=lat2<=90 and -180<=lon1<=180 and -180<=lon2<=180:
+                result = haversine_distance(lat1, lat2, lon1, lon2)
+                distance_label.config(text=f'The distance is {result:.2f} km/{result * 0.621371:.2f} miles')
+            else:
+                distance_label.config(text="Latitude from -90 to +90 degrees\nLongitude from -180 to +180 degrees")
+        except ValueError:
+            distance_label.config(text="Please enter a valid number")
+
+    calculate_button = tk.Button(distance_frame, 
+                            text="Calculate", 
+                            font=('Arial', 12, 'normal'),
+                            bg=COLORS['button'],
+                            fg=COLORS['button_text'],
+                            command=calculate_distance)
+    calculate_button.pack(pady=20)
 
 def create_gui():
     window = tk.Tk()
@@ -128,4 +195,8 @@ def create_gui():
 
     notebook.bind('<<NotebookTabChanged>>', on_tab_changed)
 
+    distance_tab(notebook)
+
     window.mainloop()
+
+create_gui()
